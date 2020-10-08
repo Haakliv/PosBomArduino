@@ -5,7 +5,7 @@
 */
 
 #include <RH_ASK.h>
-RH_ASK driver(2000, 4, 3); // 200bps, TX on D3 (pin 2), RX on D4 (pin 3)
+RH_ASK driver(2000, 0, 1); // 200bps, TX on D1 , RX on D0 
 
 void setup()
 {
