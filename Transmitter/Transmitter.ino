@@ -1,26 +1,37 @@
-/*
-  SimpleSend
-  This sketch transmits a short text message using the VirtualWire library
-  connect the Transmitter data pin to Arduino pin 12
-*/
+// ask_transmitter.pde
+// -*- mode: C++ -*-
+// Simple example of how to use RadioHead to transmit messages
+// with a simple ASK transmitter in a very simple way.
+// Implements a simplex (one-way) transmitter with an TX-C1 module
+// Tested on Arduino Mega, Duemilanova, Uno, Due, Teensy, ESP-12
 
 #include <RH_ASK.h>
-RH_ASK driver(2000, 0, 1); // 200bps, TX on D1 , RX on D0 
+#ifdef RH_HAVE_HARDWARE_SPI
+#include <SPI.h> // Not actually used but needed to compile
+#endif
+
+//RH_ASK driver;
+RH_ASK driver(2000, 4, 5, 0);
 
 void setup()
 {
-    // Initialize the IO and ISR
-
+#ifdef RH_HAVE_SERIAL
+    Serial.begin(9600);    // Debugging only
+#endif
+    if (!driver.init())
+#ifdef RH_HAVE_SERIAL
+         Serial.println("init failed");
+#else
+  ;
+#endif
 }
 
 void loop()
 {
-    char message[] = "hello";
-    send(message);
-    delay(1000);
-}
+    const char *msg = "00000001";
 
-void send (char *message)
-{
-  driver.send((uint8_t *)message, strlen(message));
+    driver.send((uint8_t *)msg, strlen(msg));
+    driver.waitPacketSent();
+    Serial.println("Message sent");
+    delay(1000);
 }
