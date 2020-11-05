@@ -1,32 +1,35 @@
+// Program som kobler til internett, mottar data fra bombrikke
+// og sender en HTTP POST request til nettsiden
+
 #include <RH_ASK.h>
 #include "WiFi.h"
 #include <HTTPClient.h>
 
-#define BUFSIZE 10
+#define BUFSIZE 10 // Lengde på data vi mottar
 
-// WiFi Settings
+// WiFi-Instillinger
 const char* ssid = "Haaklivwifi";
-const char* password =  "haakonwifi1";
+const char* password = "haakonwifi1";
 
-RH_ASK driver(2000, 18, 19, 0); // ESP8266 or ESP32: do not use pin 11 or 2
+RH_ASK driver(2000, 18, 19, 0); // Bruker pin 18 og 19 paa ESP, 2000 baud rate
 
 void setup(){
-  delay(1000);
+  delay(1000); // Venter ett sekund paa at ESP skal kunne settes opp
   Serial.begin(9600);
 
   WiFi.begin(ssid, password); // Init wifi
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) { // Venter til koblet til
     delay(500);
-    Serial.println("Connecting to WiFi...");
+    Serial.println("Kobler til WiFi...");
   }
  
-  Serial.print("Connected to the WiFi network with IP: ");
+  Serial.print("Koblet til internett med IP: ");
   Serial.println(WiFi.localIP());
     
   if (!driver.init()) // Init radio
-    Serial.println("Radio setup failed.");
-    Serial.println("Radio activated.");
+    Serial.println("Radiooppsett feilet.");
+    Serial.println("Radio aktivert.");
 }
 
 void loop(){
@@ -34,30 +37,34 @@ void loop(){
   uint8_t buflen;
 
   buflen = BUFSIZE;
-  if (driver.recv(buf, &buflen)) {
-    Serial.print("Received "); Serial.print(buflen,DEC); Serial.write(" bytes:  ");
+  if (driver.recv(buf, &buflen)) { // Hvis mottatt data
+    Serial.print("Mottatt "); Serial.print(buflen,DEC); Serial.write(" bytes:  ");
     buf[buflen]=0;
     Serial.println((char*)buf);         
   }
 
   if(WiFi.status()== WL_CONNECTED){   //Check WiFi connection status
     HTTPClient http;   
+
+    http.begin("https://gruppe13.innovasjon.ed.ntnu.no/bomstasjon/");  //Nettside som skal kobles til
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded"); //Setter format paa http request
+
+    char *postBuf = (char*)buf;
+    String postStr = "id=";
+    postStr += postBuf; // Slaar sammen buffer og post-tekst
  
-    http.begin("http://192.168.1.88:8090/");  //Specify destination for HTTP request
-    http.addHeader("Content-Type", "text/plain"); //Specify content-type header
- 
-    int httpResponseCode = http.POST("Hello Bottle, from ESP32");  //Send the actual POST request
+    int httpResponseCode = http.POST(postStr); // Sender POST Request
  
     if(httpResponseCode>0){
-      Serial.println(httpResponseCode);   //Print return code
+      Serial.println(httpResponseCode);   //Print http respons kode
     } else {
-      Serial.print("Error on sending request: ");
+      Serial.print("Request feilet: ");
       Serial.println(httpResponseCode);
     }
  
    http.end();  //Free resources
   } else {
-    Serial.println("Error in WiFi connection");   
+    Serial.println("Feil med WiFi-kommunikasjon");   
   }
  
   delay(5000);  //Send a request every 5 seconds
