@@ -8,8 +8,7 @@
 //RH_ASK driver;
 RH_ASK driver(2000, 4, 5, 0);
 
-void setup()
-{
+void setup(){
 #ifdef RH_HAVE_SERIAL
     Serial.begin(9600);
 #endif
@@ -22,10 +21,10 @@ void setup()
 }
 
 void loop(){
-    const char *msg = "00000001"; // Melding som skal sendes
+    const char *msg = "11111113"; // Melding som skal sendes
 
     driver.send((uint8_t *)msg, strlen(msg)); // Sender melding
     driver.waitPacketSent(); // Venter til melding er sendt
     Serial.println("Melding sendt");
-    delay(1000); // Venter 1 sekund
+    delay(5000); // Venter 1 sekund
 }

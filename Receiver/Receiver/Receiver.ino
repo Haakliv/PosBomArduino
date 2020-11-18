@@ -30,20 +30,33 @@ void setup(){
   if (!driver.init()) // Init radio
     Serial.println("Radiooppsett feilet.");
     Serial.println("Radio aktivert.");
+
+  char incoming = 0;
+  Serial.println("Skriv noe for aa starte programmet.");
+  while (true) {
+    if (Serial.available() > 0) {
+      // read the incoming:
+      incoming = Serial.read();
+      // say what you got:
+      Serial.println(incoming);   
+      if (incoming != 0) {
+        Serial.println("Starter programmet...");
+        break;
+      }
+    }
+  }
 }
 
 void loop(){
   uint8_t buf[BUFSIZE];
   uint8_t buflen;
-
+  
   buflen = BUFSIZE;
   if (driver.recv(buf, &buflen)) { // Hvis mottatt data
     Serial.print("Mottatt "); Serial.print(buflen,DEC); Serial.write(" bytes:  ");
     buf[buflen]=0;
-    Serial.println((char*)buf);         
-  }
-
-  if(WiFi.status()== WL_CONNECTED){   //Check WiFi connection status
+    Serial.println((char*)buf);  
+    if(WiFi.status()== WL_CONNECTED){   //Check WiFi connection status
     HTTPClient http;   
 
     http.begin("https://gruppe13.innovasjon.ed.ntnu.no/bomstasjon/");  //Nettside som skal kobles til
@@ -65,7 +78,7 @@ void loop(){
    http.end();  //Free resources
   } else {
     Serial.println("Feil med WiFi-kommunikasjon");   
+  }       
   }
- 
   delay(5000);  //Send a request every 5 seconds
 }
